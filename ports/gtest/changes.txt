@@ -1,0 +1,6 @@
+Based on https://github.com/microsoft/vcpkg/tree/master/ports/gtest
+- Removed fix-build-failure-in-gcc-11.patch.
+- Added CMAKE_DISABLE_FIND_PACKAGE_Python.
+- Replaced vcpkg_configure_cmake, vcpkg_install_cmake and vcpkg_fixup_cmake_targets
+  with vcpkg_cmake_configure, vcpkg_cmake_install and vcpkg_cmake_config_fixup.
+- Replaced CONTROL with vcpkg.json.

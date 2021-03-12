@@ -1,4 +1,8 @@
 {
   "default": {
+    "gtest": {
+      "baseline": "1.10.0.20210304",
+      "port-version": 0
+    }
   }
 }
