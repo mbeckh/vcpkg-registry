@@ -4,6 +4,10 @@
       "baseline": "4.0.1.20210303",
       "port-version": 0
     },
+    "detours-gmock": {
+      "baseline": "1.0.0",
+      "port-version": 0
+    },
     "gtest": {
       "baseline": "1.10.0.20210304",
       "port-version": 0
