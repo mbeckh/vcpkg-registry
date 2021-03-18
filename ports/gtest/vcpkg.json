@@ -1,7 +1,7 @@
 {
   "name": "gtest",
   "version": "1.10.0.20210304",
-  "port-version": 0,
+  "port-version": 1,
   "description": "GoogleTest and GoogleMock testing frameworks.",
   "homepage": "https://github.com/google/googletest",
   "dependencies": [

@@ -1,0 +1,13 @@
+diff --git a/googlemock/CMakeLists.txt b/googlemock/CMakeLists.txt
+index e7df8ec5..db7b0f3e 100644
+--- a/googlemock/CMakeLists.txt
++++ b/googlemock/CMakeLists.txt
+@@ -86,7 +86,7 @@ include_directories(${gmock_build_include_dirs})
+ # Google Mock libraries.  We build them using more strict warnings than what
+ # are used for other targets, to ensure that Google Mock can be compiled by
+ # a user aggressive about warnings.
+-if (MSVC)
++if (FALSE AND MSVC)
+   cxx_library(gmock
+               "${cxx_strict}"
+               "${gtest_dir}/src/gtest-all.cc"
