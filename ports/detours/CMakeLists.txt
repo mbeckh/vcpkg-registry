@@ -42,7 +42,9 @@ add_library(detours STATIC
     VERSION "${version}" SOVERSION "${major_version}"
     DEBUG_POSTFIX "d")
 
-target_compile_options(detours PRIVATE /W4 /WX /we4777 /we4800 /Zi /MT /Gy /Gm- /Zl /Od)
+if(MSVC)
+	target_compile_options(detours PRIVATE /W4 /WX /we4777 /we4800 /Gy /Od)
+endif()
 target_compile_definitions(detours PRIVATE $<$<CONFIG:DEBUG>:DETOUR_DEBUG=1> WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x501)
 
 target_include_directories(detours
@@ -72,8 +74,3 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/detours-config.cmake" "${CMAKE_CURREN
 
 install(EXPORT detours-targets
         DESTINATION "share/detours" NAMESPACE "detours::")
-
-if (WIN32)
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/detours$<$<CONFIG:DEBUG>:d>.pdb"
-            DESTINATION "lib")
-endif()
