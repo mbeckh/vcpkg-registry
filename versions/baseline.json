@@ -2,7 +2,7 @@
   "default": {
     "detours": {
       "baseline": "4.0.1.20210303",
-      "port-version": 2
+      "port-version": 3
     },
     "detours-gmock": {
       "baseline": "1.0.1",

@@ -45,7 +45,7 @@ add_library(detours STATIC
 if(MSVC)
 	target_compile_options(detours PRIVATE /W4 /WX /we4777 /we4800 /Gy /Od)
 endif()
-target_compile_definitions(detours PRIVATE $<$<CONFIG:DEBUG>:DETOUR_DEBUG=1> WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x501)
+target_compile_definitions(detours PRIVATE $<$<CONFIG:DEBUG>:DETOUR_DEBUG=0> WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x501)
 
 target_include_directories(detours
     PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>" "$<INSTALL_INTERFACE:include>")
