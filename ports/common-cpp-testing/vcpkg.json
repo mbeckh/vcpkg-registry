@@ -1,0 +1,16 @@
+{
+  "name": "common-cpp-testing",
+  "version-semver": "0.0.2-20210814",
+  "description": "Utilities for testing C++ code with GoogleTest on Windows.",
+  "dependencies": [
+    "gtest",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}
