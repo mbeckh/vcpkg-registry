@@ -43,7 +43,7 @@ add_library(detours STATIC
     DEBUG_POSTFIX "d")
 
 if(MSVC)
-	target_compile_options(detours PRIVATE /W4 /WX /we4777 /we4800 /Gy /Od)
+    target_compile_options(detours PRIVATE /W4 /WX /we4777 /we4800 /Gy /Od)
 endif()
 target_compile_definitions(detours PRIVATE $<$<CONFIG:DEBUG>:DETOUR_DEBUG=0> WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x501)
 
