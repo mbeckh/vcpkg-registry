@@ -1,8 +1,9 @@
 {
   "name": "common-cpp-testing",
-  "version-semver": "0.0.2-20210814",
+  "version-semver": "0.0.3-20211118",
   "description": "Utilities for testing C++ code with GoogleTest on Windows.",
   "dependencies": [
+    "detours-gmock",
     "gtest",
     {
       "name": "vcpkg-cmake",
