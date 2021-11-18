@@ -11,6 +11,6 @@ vcpkg_cmake_install()
 
 file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME "copyright")
 
-vcpkg_cmake_config_fixup(PACKAGE_NAME m4t)
+vcpkg_cmake_config_fixup(PACKAGE_NAME common-cpp-testing)
 
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include" "${CURRENT_PACKAGES_DIR}/debug/share")
