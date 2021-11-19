@@ -2,7 +2,7 @@
   "default": {
     "common-cpp-testing": {
       "baseline": "0.0.3-20211118",
-      "port-version": 3
+      "port-version": 4
     },
     "detours": {
       "baseline": "4.0.1.20210303",
