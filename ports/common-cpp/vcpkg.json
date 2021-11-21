@@ -1,0 +1,27 @@
+{
+  "name": "common-cpp",
+  "version-semver": "0.1.2",
+  "description": "Common classes for C++ programming, particularly for targeting Windows API and COM.",
+  "dependencies": [
+    "fmt",
+    "gtest",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "features": {
+    "tests": {
+      "description": "Build tests",
+      "dependencies": [
+        "common-cpp-testing",
+        "detours-gmock",
+        "gtest"
+      ]
+    }
+  }
+}
