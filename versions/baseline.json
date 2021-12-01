@@ -14,7 +14,7 @@
     },
     "detours-gmock": {
       "baseline": "1.0.2",
-      "port-version": 1
+      "port-version": 2
     },
     "fmt": {
       "baseline": "8.0.1",
