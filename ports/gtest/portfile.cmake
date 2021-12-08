@@ -11,7 +11,7 @@ vcpkg_from_github(
     PATCHES
         0002-Fix-z7-override.patch
         fix-main-lib-path.patch
-		fix-msvc-gmock-build.patch
+        fix-msvc-gmock-build.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "dynamic" GTEST_FORCE_SHARED_CRT)
@@ -23,7 +23,8 @@ vcpkg_cmake_configure(
         -DBUILD_GTEST=ON
         -DCMAKE_DEBUG_POSTFIX=d
         -Dgtest_force_shared_crt=${GTEST_FORCE_SHARED_CRT}
-		-DCMAKE_DISABLE_FIND_PACKAGE_Python:BOOL=TRUE
+        -DCMAKE_DISABLE_FIND_PACKAGE_Python:BOOL=TRUE
+        -DCMAKE_POLICY_DEFAULT_CMP0069:STRING=NEW
 )
 
 vcpkg_cmake_install()

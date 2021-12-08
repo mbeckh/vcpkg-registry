@@ -22,7 +22,7 @@
     },
     "gtest": {
       "baseline": "1.10.0.20210304",
-      "port-version": 1
+      "port-version": 2
     }
   }
 }
