@@ -25,6 +25,7 @@ vcpkg_cmake_configure(
         -Dgtest_force_shared_crt=${GTEST_FORCE_SHARED_CRT}
         -DCMAKE_DISABLE_FIND_PACKAGE_Python:BOOL=TRUE
         -DCMAKE_POLICY_DEFAULT_CMP0069:STRING=NEW
+        -DCMAKE_INTERPROCEDURAL_OPTIMIZATION:BOOL=OFF
 )
 
 vcpkg_cmake_install()
