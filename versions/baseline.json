@@ -2,7 +2,7 @@
   "default": {
     "common-cpp": {
       "baseline": "0.1.2",
-      "port-version": 0
+      "port-version": 1
     },
     "common-cpp-testing": {
       "baseline": "0.0.3-20211118",
