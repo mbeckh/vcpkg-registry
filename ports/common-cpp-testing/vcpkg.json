@@ -1,7 +1,6 @@
 {
   "name": "common-cpp-testing",
-  "version-semver": "0.0.3-20211118",
-  "port-version": 5,
+  "version-semver": "0.0.3-20221110",
   "description": "Utilities for testing C++ code with GoogleTest on Windows.",
   "dependencies": [
     "detours-gmock",

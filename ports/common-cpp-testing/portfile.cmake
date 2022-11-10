@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO mbeckh/common-cpp-testing
-    REF 98bc032edfeb24426fe7834f719a33a2854fcc1d
-    SHA512 36e548eb8c117c35fbb73bf23a2302f3163d5556827e09f2a681213d8003ca340e93db3e83cba7fb927b2cd461702ab9f3965e5da4d6209e32ab47e638fb5e1f
+    REF ac2933f9f4e0df24546bbc6e678ab18eb41660dd
+    SHA512 bfa5647b472ba40c17ca040583e9fafb29b492ebfa353ab7f84cd54d91cdde0d937acced62496dadbd5cc4a030c7dc55b4df407a40138fde55da297367cf2f75
     HEAD_REF master
 )
 

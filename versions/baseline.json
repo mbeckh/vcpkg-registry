@@ -5,8 +5,8 @@
       "port-version": 1
     },
     "common-cpp-testing": {
-      "baseline": "0.0.3-20211118",
-      "port-version": 5
+      "baseline": "0.0.3-20221110",
+      "port-version": 0
     },
     "detours": {
       "baseline": "4.0.1.20210303",
