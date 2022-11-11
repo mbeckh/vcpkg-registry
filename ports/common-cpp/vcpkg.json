@@ -1,7 +1,6 @@
 {
   "name": "common-cpp",
-  "version-semver": "0.1.2",
-  "port-version": 1,
+  "version-semver": "0.1.3-20221111",
   "description": "Common classes for C++ programming, particularly for targeting Windows API and COM.",
   "dependencies": [
     "fmt",
