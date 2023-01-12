@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, 'feature**' ]
+  pull_request:
+    branches: [ master ]
+
+permissions: {}
+
+concurrency: 
+  group: ${{github.workflow}}-${{github.event_name}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Ports
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup MSVC Environment
+      uses: mbeckh/cmake-utils/msvc-dev-env@master
+
+    - name: Configure
+      uses: mbeckh/cmake-utils/configure@master
+      with:
+        build-root: build
+        source-dir: test
+        binary-dir: build/project
+        extra-args: -D "CMU_DISABLE_CLANG_TOOLS:BOOL=ON"
+
+    - name: Build Ports
+      shell: cmd
+      working-directory: build/project
+      run: |
+        ctest --verbose
+
+    - name: Save Build Output
+      if: ${{always()}}
+      uses: actions/upload-artifact@v3
+      with:
+        name: Build
+        path: |
+          build/project/vcpkg.json
+          build/project/vcpkg-configuration.json
+          build/project/ports/vcpkg-manifest-install.log
+          build/project/vcpkg-buildtrees/*/*.log
+          !build/project/vcpkg-buildtrees/detect_compiler/**
+        if-no-files-found: ignore
