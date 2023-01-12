@@ -1,0 +1,85 @@
+name: Packages
+
+on:
+  push:
+    branches: [ packages ] # For debugging
+  workflow_call:
+    inputs:
+      older-than-days:
+        description: Only delete versions older than this number of days (optional, default is 365).
+        type: number
+        default: 365
+  workflow_dispatch:
+    inputs:
+      older-than-days:
+        description: Only delete versions older than this number of days (optional, default is 365).
+        type: number
+        default: 365
+  workflow_run:
+    workflows: [ Build ]
+    types: [ completed ]
+    branches: [ master ]
+
+permissions: {}
+
+concurrency: 
+  group: ${{github.workflow}}-${{github.event_name}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Clean Packages
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+    - name: Delete Expired Versions
+      shell: bash
+      env:
+        OLDER_THAN_DAYS: ${{inputs.older-than-days || 365}}
+        GITHUB_TOKEN: ${{github.token}}
+      run: |
+        packages=$(curl -k -s -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages?package_type=nuget)
+        packages=$(jq -r 'map( [ .name ] + (.name | match("^(.+)_(.+?)$") | [ .captures[].string ]) ) | .[] | @tsv' <<< "$packages")
+        while IFS=$'\t' read package_key package_name package_triplet; do
+          echo "Checking package $package_key"
+          echo "## Package $package_name ($package_triplet)" >> $GITHUB_STEP_SUMMARY
+          versions=$(curl -k -s -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages/nuget/$package_key/versions?state=active)
+          versions_delete=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '(now - $days * 24 * 60 * 60) as $limit | sort_by(.updated_at) | reverse | .[1:] | map(.updated_at |= fromdateiso8601) | map(select(.updated_at < $limit)) | to_entries[] | [ .key, .value.id, (.value.name | match("^(.+)-(vcpkg[0-9a-f]+)$") | .captures[].string), (.value.updated_at | gmtime | strftime("%Y-%m-%d %H:%M:%S")) ] | @tsv' <<< "$versions")
+          has_list=0
+          while IFS=$'\t' read sequence version_id version_name version_hash version_updated_at ; do
+            if [ -n "$sequence" ]; then
+              if [ $sequence -eq 0 ]; then
+                echo "### Deleted versions of package $package_name" >> $GITHUB_STEP_SUMMARY
+                echo "| Package | Version | Hash | Updated at |" >> $GITHUB_STEP_SUMMARY
+                echo "| --- | --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
+                has_list=1
+              fi
+              echo "Deleting version $version_name-$version_hash (last updated: $version_updated_at)"
+              echo "| $package_name | $version_name | $version_hash | $version_updated_at |" >> $GITHUB_STEP_SUMMARY
+              #curl -s -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages/nuget/$package_name/versions/$version_id
+            fi
+          done <<< "$versions_delete"
+          if [ $has_list -eq 1 ]; then
+            echo >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "### $sequence Retained versions of package $package_name" >> $GITHUB_STEP_SUMMARY
+          versions_retain=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '(now - $days * 24 * 60 * 60) as $limit | sort_by(.updated_at) | reverse | map(.updated_at |= fromdateiso8601) | (.[:0] + map(select(.updated_at >= $limit))) | to_entries[] | [ .key, .value.id, (.value.name | match("^(.+)-(vcpkg[0-9a-f]+)$") | .captures[].string), (.value.updated_at | gmtime | strftime("%Y-%m-%d %H:%M:%S")) ] | @tsv' <<< "$versions")
+          has_list=0
+          while IFS=$'\t' read sequence version_id version_name version_hash version_updated_at ; do
+            if [ -n "$sequence" ]; then
+              if [ $sequence -eq 0 ]; then
+                echo "| Package | Version | Hash | Updated at |" >> $GITHUB_STEP_SUMMARY
+                echo "| --- | --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
+                has_list=1
+              fi
+              echo "| $package_name | $version_name | $version_hash | $version_updated_at |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done <<< "$versions_retain" 
+          if [ $has_list -eq 0 ]; then
+            echo "None." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo >> $GITHUB_STEP_SUMMARY
+        done <<< "$packages"
