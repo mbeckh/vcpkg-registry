@@ -1,15 +1,14 @@
 # vcpkg-registry
 A vcpkg registry for customized ports and own libraries.
 
+![Last Update](https://img.shields.io/github/last-commit/mbeckh/vcpkg-repository/master?label=Last+Update&style=flat-square)
+[![Ports](https://img.shields.io/github/actions/workflow/status/mbeckh/vcpkg-registry/build.yml?branch=master&label=Ports&logo=GitHub&style=flat-square)](https://github.com/mbeckh/vcpkg-repository/actions)
 [![License](https://img.shields.io/github/license/mbeckh/vcpkg-registry?label=License&style=flat-square)](https://github.com/mbeckh/vcpkg-registry/blob/master/LICENSE)
 
 ## Documentation
-Please see the following resources on how to use this repository.
--   Specification
-    -   [Package Federation: Custom Registries](https://github.com/microsoft/vcpkg/blob/master/docs/specifications/registries.md)
-    -   [Registries: Take 2 (including Git Registries)](https://github.com/microsoft/vcpkg/blob/master/docs/specifications/registries-2.md)
--   First steps tutorial
-    -   [Registries: Bring your own libraries to vcpkg](https://devblogs.microsoft.com/cppblog/registries-bring-your-own-libraries-to-vcpkg) (Microsoft Developer Blog)
+Please see the following resources in the [vcpkg documentation from Microsoft](https://learn.microsoft.com/en-us/vcpkg/) on how to use this repository.
+-   [Using Registries](https://learn.microsoft.com/en-us/vcpkg/users/registries) 
+-   [vcpkg-configuration.json Reference](https://learn.microsoft.com/en-us/vcpkg/reference/vcpkg-configuration-json)
 
 ## License
 The code is released under the MIT License. Please see [LICENSE](LICENSE) and [NOTICE](NOTICE) for details.
