@@ -49,6 +49,8 @@ jobs:
         path: |
           build/project/vcpkg.json
           build/project/vcpkg-configuration.json
-          build/project/ports/vcpkg-buildtrees/*/*.log
+          build/project/ports/**/*.log
+          !build/project/ports/vcpkg_installed/**
           !build/project/ports/vcpkg-buildtrees/detect_compiler/**
+          !build/project/ports/vcpkg-packages/**
         if-no-files-found: ignore
