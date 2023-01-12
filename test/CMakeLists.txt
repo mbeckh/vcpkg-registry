@@ -24,21 +24,27 @@ project("vcpkg-registry" VERSION 0.0.1
         LANGUAGES CXX)
 ]])
 
-enable_testing()
-
-add_test(NAME "Create vcpkg manifest"
-         COMMAND "${CMAKE_COMMAND}"
-                 -D "DIR=${CMAKE_BINARY_DIR}"
-                 -P "${CMAKE_CURRENT_LIST_DIR}/vcpkg-manifest.cmake")
-set_tests_properties("Create vcpkg manifest" PROPERTIES FIXTURES_SETUP "vcpkg_config")
+if(vcpkg_ROOT)
+    set(vcpkg_root -D "vcpkg_ROOT=${vcpkg_ROOT}")
+endif()
 
 if(CMAKE_TOOLCHAIN_FILE)
     set(toolchain_file -D "CMAKE_TOOLCHAIN_FILE:FILEPATH=${CMAKE_TOOLCHAIN_FILE}")
 endif()
 
 if(VCPKG_BINARY_SOURCES)
-    list(APPEND vcpkg_binary_sources -D "${VCPKG_BINARY_SOURCES}")
+    string(REPLACE ";" "\\;" VCPKG_BINARY_SOURCES "${VCPKG_BINARY_SOURCES}")
+    set(vcpkg_binary_sources -D "VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}")
 endif()
+
+enable_testing()
+
+add_test(NAME "Create vcpkg manifest"
+         COMMAND "${CMAKE_COMMAND}"
+                 ${vcpkg_root}
+                 -D "DIR=${CMAKE_BINARY_DIR}"
+                 -P "${CMAKE_CURRENT_LIST_DIR}/vcpkg-manifest.cmake")
+set_tests_properties("Create vcpkg manifest" PROPERTIES FIXTURES_SETUP "vcpkg_config")
 
 add_test(NAME "Build ports"
          COMMAND "${CMAKE_COMMAND}"
@@ -47,6 +53,7 @@ add_test(NAME "Build ports"
                  ${toolchain_file}
                  -D "CMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
                  -D "CMU_DISABLE_CLANG_TOOLS:BOOL=ON"
+                 ${vcpkg_root}
                  ${vcpkg_binary_sources}
                  -S "${CMAKE_BINARY_DIR}" -B "${CMAKE_BINARY_DIR}/ports")
 set_tests_properties("Build ports" PROPERTIES FIXTURES_REQUIRED "vcpkg_config")
