@@ -41,7 +41,7 @@ jobs:
       shell: cmd
       working-directory: build/project
       run: |
-        ctest --output-on-failure --verbose
+        ctest --verbose
 
     - name: Save Build Output
       if: ${{always()}}
@@ -51,8 +51,7 @@ jobs:
         path: |
           build/project/vcpkg.json
           build/project/vcpkg-configuration.json
-          build/project/ports/**/*.log
-          !build/project/ports/vcpkg_installed/**
-          !build/project/ports/vcpkg-buildtrees/detect_compiler/**
-          !build/project/ports/vcpkg-packages/**
+          build/project/ports/vcpkg-manifest-install.log
+          build/project/vcpkg-buildtrees/**/*.log
+          !build/project/vcpkg-buildtrees/detect_compiler/**
         if-no-files-found: ignore
