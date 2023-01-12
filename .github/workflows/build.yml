@@ -52,6 +52,6 @@ jobs:
           build/project/vcpkg.json
           build/project/vcpkg-configuration.json
           build/project/ports/vcpkg-manifest-install.log
-          build/project/vcpkg-buildtrees/**/*.log
+          build/project/vcpkg-buildtrees/*/*.log
           !build/project/vcpkg-buildtrees/detect_compiler/**
         if-no-files-found: ignore
