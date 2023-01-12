@@ -32,11 +32,23 @@ jobs:
       with:
         build-root: build
         source-dir: test
-        binary-dir: build/ports
+        binary-dir: build/project
         extra-args: -D "CMU_DISABLE_CLANG_TOOLS:BOOL=ON"
 
     - name: Build Ports
       shell: cmd
-      working-directory: build/ports
+      working-directory: build/project
       run: |
         ctest --output-on-failure --verbose
+
+    - name: Save Build Output
+      if: ${{always()}}
+      uses: actions/upload-artifact@v3
+      with:
+        name: Build
+        path: |
+          build/project/vcpkg.json
+          build/project/vcpkg-configuration.json
+          build/project/ports/vcpkg-buildtrees/*/*.log
+          !build/project/ports/vcpkg-buildtrees/detect_compiler/**
+        if-no-files-found: ignore

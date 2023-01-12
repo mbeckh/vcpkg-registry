@@ -63,7 +63,7 @@ string(REPLACE [[\]] [[\\]] path "${path}")
 # Template for vcpkg.json
 string(CONFIGURE
 [[{
-    "name": "vcpkg-repository-test",
+    "name": "vcpkg-registry",
     "dependencies": [],
     "overrides": [],
     "builtin-baseline": "@vcpkg-ref@"
