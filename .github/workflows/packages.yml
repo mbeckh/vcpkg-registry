@@ -1,8 +1,6 @@
 name: Packages
 
 on:
-  push:
-    branches: [ packages ] # For debugging
   workflow_call:
     inputs:
       older-than-days:
