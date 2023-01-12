@@ -1,8 +1,6 @@
 name: Packages
 
 on:
-  push:
-    branches: [ packages ]
   workflow_call:
     inputs:
       older-than-days:
@@ -58,7 +56,7 @@ jobs:
               fi
               echo "Deleting version $version_name-$version_hash (last updated: $version_updated_at)"
               echo "| $package_name | $version_name | $version_hash | $version_updated_at |" >> $GITHUB_STEP_SUMMARY
-              #curl -s -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages/nuget/$package_name/versions/$version_id
+              curl -s -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages/nuget/$package_name/versions/$version_id
             fi
           done <<< "$versions_delete"
           if [ $has_list -eq 1 ]; then
