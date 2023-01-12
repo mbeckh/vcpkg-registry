@@ -99,12 +99,20 @@ foreach(port IN LISTS ports)
         message(FATAL_ERROR "${name}: No version information")
     endif()
 
+    string(JSON port_version ERROR_VARIABLE error GET "${port_json}" "port-version")
+    if(error)
+        unset(port_version)
+    endif()
+
     # Add as dependency
     string(JSON vcpkg_json SET "${vcpkg_json}" "dependencies" ${index} "\"${name}\"")
     # Tie to fixed version
     string(JSON vcpkg_json SET "${vcpkg_json}" "overrides" ${index} "{}")
     string(JSON vcpkg_json SET "${vcpkg_json}" "overrides" ${index} "name" "\"${name}\"")
     string(JSON vcpkg_json SET "${vcpkg_json}" "overrides" ${index} "version" "\"${version}\"")
+    if(port_version)
+        string(JSON vcpkg_json SET "${vcpkg_json}" "overrides" ${index} "port-version" "${port_version}")
+    endif()
 
     # Specify current registry is authoritative for package
     string(JSON vcpkg_configuration_json SET "${vcpkg_configuration_json}" "registries" 0 "packages" ${index} "\"${name}\"")
