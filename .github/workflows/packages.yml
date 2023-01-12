@@ -37,7 +37,7 @@ jobs:
     - name: Delete Expired Versions
       shell: bash
       env:
-        OLDER_THAN_DAYS: ${{inputs.older-than-days || 365}}
+        INPUT_OLDER_THAN_DAYS: ${{inputs.older-than-days || 365}}
         GITHUB_TOKEN: ${{github.token}}
       run: |
         packages=$(curl -k -s -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages?package_type=nuget)
