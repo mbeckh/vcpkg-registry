@@ -5,13 +5,12 @@ endif()
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO google/googletest
-    REF e7e591764baba0a0c3c9ad0014430e7a27331d16
-    SHA512 8453fad4393f091ea3e700ee8c77ca40fdcb2ab5c63bfeabf870d44d2d62b8e06c5e26908b3060391a6f128b3ff07fd6f1d51a52ddc055f5abcc8dcc6459757e
-    HEAD_REF master
+    REF 356fc301251378e0f6fa6aa794d73714202887ac
+    SHA512 9208e581e2489ea375b142416d835ae0d1afe9d0b322cd5d528f1dcf5cb47c1470c81b3519969f2df6df59ec0ffd307d970205d82b213338965a920509af03b7
+    HEAD_REF main
     PATCHES
-        0002-Fix-z7-override.patch
+        clang-tidy-no-lint.patch
         fix-main-lib-path.patch
-        fix-msvc-gmock-build.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "dynamic" GTEST_FORCE_SHARED_CRT)
@@ -20,8 +19,6 @@ vcpkg_cmake_configure(
     SOURCE_PATH ${SOURCE_PATH}
     OPTIONS
         -DBUILD_GMOCK=ON
-        -DBUILD_GTEST=ON
-        -DCMAKE_DEBUG_POSTFIX=d
         -Dgtest_force_shared_crt=${GTEST_FORCE_SHARED_CRT}
         -DCMAKE_DISABLE_FIND_PACKAGE_Python:BOOL=TRUE
         -DCMAKE_POLICY_DEFAULT_CMP0069:STRING=NEW
@@ -31,34 +28,35 @@ vcpkg_cmake_configure(
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(CONFIG_PATH lib/cmake/GTest)
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include ${CURRENT_PACKAGES_DIR}/debug/share)
+file(
+    INSTALL
+        "${SOURCE_PATH}/googletest/src/gtest.cc"
+        "${SOURCE_PATH}/googletest/src/gtest_main.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-all.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-assertion-result.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-death-test.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-filepath.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-internal-inl.h"
+        "${SOURCE_PATH}/googletest/src/gtest-matchers.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-port.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-printers.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-test-part.cc"
+        "${SOURCE_PATH}/googletest/src/gtest-typed-test.cc"
+    DESTINATION
+        ${CURRENT_PACKAGES_DIR}/src
+)
 
-if(EXISTS ${CURRENT_PACKAGES_DIR}/debug/lib/gtest_maind.lib)
-    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link)
-    file(RENAME ${CURRENT_PACKAGES_DIR}/debug/lib/gtest_maind.lib ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link/gtest_maind.lib)
-    file(RENAME ${CURRENT_PACKAGES_DIR}/debug/lib/gmock_maind.lib ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link/gmock_maind.lib)
+file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
 
-    file(READ ${CURRENT_PACKAGES_DIR}/share/gtest/GTestTargets-debug.cmake DEBUG_CONFIG)
-    string(REPLACE "\${_IMPORT_PREFIX}/debug/lib/gtest_maind.lib"
-                   "\${_IMPORT_PREFIX}/debug/lib/manual-link/gtest_maind.lib" DEBUG_CONFIG "${DEBUG_CONFIG}")
-    string(REPLACE "\${_IMPORT_PREFIX}/debug/lib/gmock_maind.lib"
-                   "\${_IMPORT_PREFIX}/debug/lib/manual-link/gmock_maind.lib" DEBUG_CONFIG "${DEBUG_CONFIG}")
-    file(WRITE ${CURRENT_PACKAGES_DIR}/share/gtest/GTestTargets-debug.cmake "${DEBUG_CONFIG}")
+vcpkg_fixup_pkgconfig()
+if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/lib/pkgconfig/gmock_main.pc" "libdir=\${prefix}/lib" "libdir=\${prefix}/lib/manual-link")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/lib/pkgconfig/gtest_main.pc" "libdir=\${prefix}/lib" "libdir=\${prefix}/lib/manual-link")
 endif()
-
-if(EXISTS ${CURRENT_PACKAGES_DIR}/lib/gtest_main.lib)
-    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/lib/manual-link)
-    file(RENAME ${CURRENT_PACKAGES_DIR}/lib/gtest_main.lib ${CURRENT_PACKAGES_DIR}/lib/manual-link/gtest_main.lib)
-    file(RENAME ${CURRENT_PACKAGES_DIR}/lib/gmock_main.lib ${CURRENT_PACKAGES_DIR}/lib/manual-link/gmock_main.lib)
-
-    file(READ ${CURRENT_PACKAGES_DIR}/share/gtest/GTestTargets-release.cmake RELEASE_CONFIG)
-    string(REPLACE "\${_IMPORT_PREFIX}/lib/gtest_main.lib"
-                   "\${_IMPORT_PREFIX}/lib/manual-link/gtest_main.lib" RELEASE_CONFIG "${RELEASE_CONFIG}")
-    string(REPLACE "\${_IMPORT_PREFIX}/lib/gmock_main.lib"
-                   "\${_IMPORT_PREFIX}/lib/manual-link/gmock_main.lib" RELEASE_CONFIG "${RELEASE_CONFIG}")
-    file(WRITE ${CURRENT_PACKAGES_DIR}/share/gtest/GTestTargets-release.cmake "${RELEASE_CONFIG}")
+if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/gmock_main.pc" "libdir=\${prefix}/lib" "libdir=\${prefix}/lib/manual-link")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/gtest_main.pc" "libdir=\${prefix}/lib" "libdir=\${prefix}/lib/manual-link")
 endif()
-
 vcpkg_copy_pdbs()
 
 file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)

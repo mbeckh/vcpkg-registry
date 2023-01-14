@@ -1,9 +1,9 @@
 {
   "name": "gtest",
-  "version": "1.10.0.20210304",
-  "port-version": 3,
-  "description": "GoogleTest and GoogleMock testing frameworks.",
+  "version": "1.12.1.20230114",
+  "description": "GoogleTest and GoogleMock testing frameworks",
   "homepage": "https://github.com/google/googletest",
+  "license": "BSD-3-Clause",
   "dependencies": [
     {
       "name": "vcpkg-cmake",
