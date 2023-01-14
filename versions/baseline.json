@@ -17,7 +17,7 @@
       "port-version": 2
     },
     "fmt": {
-      "baseline": "8.0.1",
+      "baseline": "9.1.0.20230114",
       "port-version": 0
     },
     "gtest": {
