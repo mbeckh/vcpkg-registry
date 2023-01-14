@@ -27,10 +27,10 @@ jobs:
         fetch-depth: 0
 
     - name: Setup MSVC Environment
-      uses: mbeckh/cmake-utils/msvc-dev-env@master
+      uses: mbeckh/cmake-utils/msvc-dev-env@v1
 
     - name: Configure
-      uses: mbeckh/cmake-utils/configure@master
+      uses: mbeckh/cmake-utils/configure@v1
       with:
         build-root: build
         source-dir: test
