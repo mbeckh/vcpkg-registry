@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ master, 'feature**' ]
+    branches: [ master, 'feature**', 'port-**' ]
   pull_request:
     branches: [ master ]
 
