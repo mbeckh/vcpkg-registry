@@ -1,0 +1,89 @@
+# Copyright 2023 Michael Beckh
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+name: Clean Packages
+
+on:
+  workflow_call:
+    inputs:
+      older-than-days:
+        description: Only delete versions older than this number of days (optional, default is 120).
+        type: number
+        default: 120
+      delete:
+        description: Do delete, default is output only (optional, default is false).
+        type: boolean
+        default: false
+    #secrets:
+    #  VCPKG_REGISTRY_TOKEN:
+    #    required: true
+
+permissions: {}
+
+jobs:
+  clean_packages:
+    name: Clean Packages
+    runs-on: ubuntu-latest
+    concurrency:
+      group: run-clean_packages
+    continue-on-error: true
+
+    - name: Trigger Workflow
+      shell: bash
+      env:
+        INPUT_OLDER_THAN_DAYS: ${{toJSON(inputs.older-than-days)}}
+        INPUT_DELETE: ${{toJSON(inputs.delete)}}
+        GITHUB_TOKEN: ${{github.token}}
+      run: |
+        # Debugging
+        echo 'github: ${{toJSON(github)}}'
+        echo 'job: ${{toJSON(job)}}'
+
+        url="$GITHUB_API_URL/repos/mbeckh/vcpkg-registry/actions/workflows/clean_packages.yml/runs?created=%3E%3D$(date -u -I -d "-1 week")&event=repository_dispatch&exclude_pull_requests=true"
+
+        curl -D runs.json.headers --no-progress-meter \
+             -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+             "$url" > runs.json
+        next=$(egrep -i '^link: ' run.json.headers | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
+
+        while [[ -n $next ]]; do
+          curl -D "runs.json.headers" --no-progress-meter \
+               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+               "$next" >> runs.json
+          next=$(egrep -i '^link: ' runs.json.headers | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
+        done
+
+        if [[ 1 == 1 || $RUNNER_DEBUG -eq 1 ]]; then
+          echo "::group::$url"
+          cat runs.json
+          echo "::endgroup::"
+        fi
+
+        run_created=$(jq -r -s '
+          .workflow_runs
+          | map(select(.status | IN("completed", "success", "in_progress", "queued", "requested", "waiting", "pending")))
+          | sort_by(.run_number)
+          | .[-1:]
+          | [ .run_number, .created_at]?
+          | @sh' runs.json)
+
+        if [[ -n $run_created ]]; then
+          echo "Skipping workflow \"Clean Packages\" in repository mbeckh/vcpkg-registry, last run ${run_created%% *} created at ${run_created#* }."
+        else
+          echo "Trigger workflow \"Clean Packages\" in repository mbeckh/vcpkg-registry, last successful run was more than 1 week ago."
+          # Try different repository to check rights
+          curl -X POST --no-progress-meter \
+               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+               "$GITHUB_API_URL/repos/mbeckh/cmake-utils/dispatches" \
+               -d "{\"event_type\":\"clean_packages\",\"client_payload\":{\"older-than-days\":$INPUT_OLDER_THAN_DAYS, \"delete\":$INPUT_DELETE}}"
+        fi

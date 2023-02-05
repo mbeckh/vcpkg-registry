@@ -1,18 +1,21 @@
+# Copyright 2023 Michael Beckh
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 name: Clean Packages
 
 on:
   push:
     paths: [ '.github/workflows/clean_packages.yml' ]
-  workflow_call:
-    inputs:
-      older-than-days:
-        description: Only delete versions older than this number of days (optional, default is 120).
-        type: number
-        default: 120
-      delete:
-        description: Do delete, default is output only (optional, default is false).
-        type: boolean
-        default: false
   workflow_dispatch:
     inputs:
       older-than-days:
@@ -23,15 +26,17 @@ on:
         description: Do delete, default is output only (optional, default is false).
         type: boolean
         default: false
+  repository_dispatch:
+    types: [ clean_packages ]
 
 permissions: {}
 
-concurrency: 
+concurrency:
   group: ${{github.workflow}}-${{github.event_name}}-${{github.ref}}
   cancel-in-progress: true
 
 jobs:
-  build:
+  clean_packages:
     name: Clean Packages
     runs-on: ubuntu-latest
     permissions:
@@ -41,56 +46,98 @@ jobs:
     - name: Delete Expired Versions
       shell: bash
       env:
-        INPUT_OLDER_THAN_DAYS: ${{inputs.older-than-days || 120}}
-        INPUT_DELETE: ${{inputs.delete && github.event_name != 'push' && '1' || '0'}} # Push trigger is for test and therefore dry-run oinly
+        INPUT_OLDER_THAN_DAYS: ${{inputs.older-than-days || (github.event_name == 'repository_dispatch' && github.event.client_payload.older-than-days) || 120}}
+        INPUT_DELETE: ${{github.event_name != 'push' && (inputs.delete || (github.event_name == 'repository_dispatch' && github.event.client_payload.delete))}} # Push trigger is for test and therefore dry-run only
         GITHUB_TOKEN: ${{github.token}}
       run: |
-        packages=$(curl -k -s -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages?package_type=nuget)
-        packages=$(jq -r 'map( [ .name ] + (.name | match("^(.+)_(.+?)$") | [ .captures[].string ]) ) | .[] | @tsv' <<< "$packages")
-        while IFS=$'\t' read package_key package_name package_triplet; do
-          echo "Checking package $package_key"
-          echo "## Package $package_name ($package_triplet)" >> $GITHUB_STEP_SUMMARY
-          versions=$(curl -k -s -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages/nuget/$package_key/versions?state=active)
-          versions_delete=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '(now - $days * 24 * 60 * 60) as $limit | sort_by(.updated_at) | reverse | .[1:] | map(.updated_at |= fromdateiso8601) | map(select(.updated_at < $limit)) | to_entries[] | [ .key, .value.id, (.value.name | match("^(.+)-(vcpkg[0-9a-f]+)$") | .captures[].string), (.value.updated_at | gmtime | strftime("%Y-%m-%d %H:%M:%S")) ] | @tsv' <<< "$versions")
-          has_list=0
-          while IFS=$'\t' read sequence version_id version_name version_hash version_updated_at ; do
-            if [ -n "$sequence" ]; then
-              if [ $sequence -eq 0 ]; then
-                if [ $INPUT_DELETE -eq 1 ]; then
-                  echo "### Deleted versions of package $package_name" >> $GITHUB_STEP_SUMMARY
-                else
-                  echo "### Would delete versions of package $package_name" >> $GITHUB_STEP_SUMMARY
-                fi
-                echo "| Package | Version | Hash | Updated at |" >> $GITHUB_STEP_SUMMARY
-                echo "| --- | --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
-                has_list=1
-              fi
-             echo "| $package_name | $version_name | $version_hash | $version_updated_at |" >> $GITHUB_STEP_SUMMARY
-              if [ $INPUT_DELETE -eq 1 ]; then
-                echo "Deleting version $version_name-$version_hash (last updated: $version_updated_at)"
-                curl -s -X DELETE -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" $GITHUB_API_URL/user/packages/nuget/$package_key/versions/$version_id
-              fi  
-            fi
-          done <<< "$versions_delete"
-          if [ $has_list -eq 1 ]; then
-            echo >> $GITHUB_STEP_SUMMARY
+        function load_paged {
+          curl -D "$2.headers" --no-progress-meter \
+               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+               "$1" > "$2"
+          next=$(egrep -i '^link: ' "$2.headers" | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
+          while [[ -n $next ]]; do
+            curl -D "$2.headers" --no-progress-meter \
+                 -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+                 "$next" >> "$2"
+            next=$(egrep -i '^link: ' "$2.headers" | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
+          done
+          if [[ $RUNNER_DEBUG -eq 1 ]]; then
+            echo "::group::$1"
+            cat $2
+            echo "::endgroup::"
           fi
+        }
 
-          echo "### Retain versions of package $package_name" >> $GITHUB_STEP_SUMMARY
-          versions_retain=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '(now - $days * 24 * 60 * 60) as $limit | sort_by(.updated_at) | reverse | map(.updated_at |= fromdateiso8601) | (.[:1] + (.[1:] | map(select(.updated_at >= $limit)))) | to_entries[] | [ .key, .value.id, (.value.name | match("^(.+)-(vcpkg[0-9a-f]+)$") | .captures[].string), (.value.updated_at | gmtime | strftime("%Y-%m-%d %H:%M:%S")) ] | @tsv' <<< "$versions")
-          has_list=0
-          while IFS=$'\t' read sequence version_id version_name version_hash version_updated_at ; do
-            if [ -n "$sequence" ]; then
-              if [ $sequence -eq 0 ]; then
-                echo "| Package | Version | Hash | Updated at |" >> $GITHUB_STEP_SUMMARY
-                echo "| --- | --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
-                has_list=1
+        load_paged "$GITHUB_API_URL/user/packages?package_type=nuget" packages.json
+        jq -r -s 'map( [ .name ]
+                    + ( .name
+                        | match("^(.+)_(.+?)$")
+                        | [ .captures[].string ]
+                      )
+                  ) | .[] | @tsv' packages.json \
+        | while IFS=$'\t' read package_key package_name package_triplet; do
+            echo "Checking package $package_key"
+            echo "## Package $package_name ($package_triplet)" >> $GITHUB_STEP_SUMMARY
+            load_paged "$GITHUB_API_URL/user/packages/nuget/$package_key/versions?state=active" versions.json
+            versions_delete=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '
+                                (now - $days * 24 * 60 * 60) as $limit
+                                | sort_by(.updated_at)
+                                | reverse
+                                | .[1:]
+                                | map( (.updated_at |= fromdateiso8601)
+                                |      | select(.updated_at < $limit))
+                                | to_entries[]
+                                | [ .key, .value.id
+                                    , (.value.name | match("^(.+)-(vcpkg[0-9a-f]+)$") | .captures[].string)
+                                    , (.value.updated_at | gmtime | strftime("%Y-%m-%d %H:%M:%S"))
+                                  ] | @tsv' versions.json)
+            has_list=0
+            while IFS=$'\t' read sequence version_id version_name version_hash version_updated ; do
+              if [[ -n $sequence ]]; then
+                if [[ $sequence -eq 0 ]]; then
+                  if [[ $INPUT_DELETE == 'true' ]]; then
+                    echo "### Deleted versions of package $package_name" >> $GITHUB_STEP_SUMMARY
+                  else
+                    echo "### Would delete versions of package $package_name" >> $GITHUB_STEP_SUMMARY
+                  fi
+                  echo "| Package | Version | Hash | Updated |" >> $GITHUB_STEP_SUMMARY
+                  echo "| --- | --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
+                  has_list=1
+                fi
+               echo "| $package_name | $version_name | $version_hash | $version_updated |" >> $GITHUB_STEP_SUMMARY
+                if [[ $INPUT_DELETE == 'true' ]]; then
+                  echo "Deleting version $version_name-$version_hash (last updated: $version_updated)"
+                  curl -X DELETE --no-progress-meter \
+                       -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN"
+                       "$GITHUB_API_URL/user/packages/nuget/$package_key/versions/$version_id"
+                fi
               fi
-              echo "| $package_name | $version_name | $version_hash | $version_updated_at |" >> $GITHUB_STEP_SUMMARY
-            fi
-          done <<< "$versions_retain" 
-          if [ $has_list -eq 0 ]; then
-            echo "None." >> $GITHUB_STEP_SUMMARY
-          fi
-          echo >> $GITHUB_STEP_SUMMARY
-        done <<< "$packages"
+            done <<< "$versions_delete"
+            [[ $has_list -eq 1 ]] && echo >> $GITHUB_STEP_SUMMARY || true
+
+            echo "### Retain versions of package $package_name" >> $GITHUB_STEP_SUMMARY
+            versions_retain=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '
+                                (now - $days * 24 * 60 * 60) as $limit
+                                | sort_by(.updated_at)
+                                | reverse
+                                | map(.updated_at |= fromdateiso8601)
+                                | (.[:1] + (.[1:] | map(select(.updated_at >= $limit))))
+                                | to_entries[]
+                                | [ .key, .value.id
+                                    , (.value.name | match("^(.+)-(vcpkg[0-9a-f]+)$") | .captures[].string)
+                                    , (.value.updated_at | gmtime | strftime("%Y-%m-%d %H:%M:%S"))
+                                  ] | @tsv' versions.json)
+            has_list=0
+            while IFS=$'\t' read sequence version_id version_name version_hash version_updated ; do
+              if [[ -n $sequence ]]; then
+                if [[ $sequence -eq 0 ]]; then
+                  echo "| Package | Version | Hash | Updated |" >> $GITHUB_STEP_SUMMARY
+                  echo "| --- | --- | --- | --- |" >> $GITHUB_STEP_SUMMARY
+                  has_list=1
+                fi
+                echo "| $package_name | $version_name | $version_hash | $version_updated |" >> $GITHUB_STEP_SUMMARY
+              fi
+            done <<< "$versions_retain"
+            [[ $has_list -eq 0 ]] && echo "None." >> $GITHUB_STEP_SUMMARY || true
+            echo >> $GITHUB_STEP_SUMMARY
+          done

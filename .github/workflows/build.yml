@@ -44,7 +44,7 @@ jobs:
         ctest --verbose
 
     - name: Save Build Output
-      if: ${{always()}}
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         name: Build
@@ -55,3 +55,8 @@ jobs:
           build/project/vcpkg-buildtrees/*/*.log
           !build/project/vcpkg-buildtrees/detect_compiler/**
         if-no-files-found: ignore
+
+  clean_packages:
+    name: Clean Packages Workflow
+    uses: ./.github/workflows/run-clean_packages.yml
+    secrets: inherit

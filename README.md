@@ -10,6 +10,17 @@ Please see the following resources in the [vcpkg documentation from Microsoft](h
 -   [Using Registries](https://learn.microsoft.com/en-us/vcpkg/users/registries) 
 -   [vcpkg-configuration.json Reference](https://learn.microsoft.com/en-us/vcpkg/reference/vcpkg-configuration-json)
 
+## Workflows
+Use the workflow mbeckh/vcpkg-registry/.github/workflows/run-clean_packages.yml to delete outdated versions of packages.
+The job is triggered once each week only.
+
+Inputs:
+-   `older-than-days` - Delete all versions of a package which are older than this number of days, but always keep at
+    least on version of a package (optional, default is 120). Still one version of each package is retained even if it
+    is older.
+
+-   `delete` - Make the workflow submit delete calls, else triggers a dry-run (optional, default is `false`).
+
 ## Dependencies
 The following diagram shows the dependencies of the packages. Host-only dependencies are shown using dotted lines, dependencies used only by tests are printed with reduced line thickness.
 
