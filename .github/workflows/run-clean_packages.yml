@@ -38,6 +38,7 @@ jobs:
       group: run-clean_packages
     continue-on-error: true
 
+    steps:
     - name: Trigger Workflow
       shell: bash
       env:
