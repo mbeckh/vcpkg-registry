@@ -79,3 +79,4 @@ jobs:
     name: Clean Packages Workflow
     uses: ./.github/workflows/run-clean_packages.yml
     secrets: inherit
+    permissions: write-all
