@@ -50,18 +50,18 @@ jobs:
       env:
         INPUT_OLDER_THAN_DAYS: ${{toJSON(inputs.older-than-days)}}
         INPUT_DELETE: ${{toJSON(inputs.delete)}}
-        GITHUB_TOKEN: ${{secrets.VCPKG_REGISTRY_TOKEN}}
+        VCPKG_REGISTRY_TOKEN: ${{secrets.VCPKG_REGISTRY_TOKEN}}
       run: |
         url="$GITHUB_API_URL/repos/mbeckh/vcpkg-registry/actions/workflows/clean_packages.yml/runs?created=%3E%3D$(date -u -I -d "-1 week")&event=repository_dispatch&exclude_pull_requests=true"
 
         curl -D runs.json.headers --no-progress-meter \
-             -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+             -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $VCPKG_REGISTRY_TOKEN" \
              "$url" > runs.json
         next=$(egrep -i '^link: ' runs.json.headers | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
 
         while [[ -n $next ]]; do
           curl -D "runs.json.headers" --no-progress-meter \
-               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
+               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $VCPKG_REGISTRY_TOKEN" \
                "$next" >> runs.json
           next=$(egrep -i '^link: ' runs.json.headers | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
         done
@@ -83,7 +83,7 @@ jobs:
           echo "Trigger workflow \"Clean Packages\" in repository mbeckh/vcpkg-registry, last successful run was more than 1 week ago."
           # Try different repository to check rights
           curl -X POST --no-progress-meter \
-               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
-               "$GITHUB_API_URL/repos/mbeckh/cmake-utils/dispatches" \
+               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $VCPKG_REGISTRY_TOKEN" \
+               "$GITHUB_API_URL/repos/mbeckh/vcpkg-registry/dispatches" \
                -d "{\"event_type\":\"clean_packages\",\"client_payload\":{\"older-than-days\":$INPUT_OLDER_THAN_DAYS, \"delete\":$INPUT_DELETE}}"
         fi
