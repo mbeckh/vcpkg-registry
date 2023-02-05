@@ -21,6 +21,9 @@ Inputs:
 
 -   `delete` - Make the workflow submit delete calls, else triggers a dry-run (optional, default is `false`).
 
+Secrets:
+-   `VCPKG_REGISTRY_TOKEN` - A token which has permission to call repository dispatch on this repository.
+
 ## Dependencies
 The following diagram shows the dependencies of the packages. Host-only dependencies are shown using dotted lines, dependencies used only by tests are printed with reduced line thickness.
 
