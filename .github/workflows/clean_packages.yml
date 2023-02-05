@@ -87,7 +87,7 @@ jobs:
                                 | reverse
                                 | .[1:]
                                 | map( (.updated_at |= fromdateiso8601)
-                                |      | select(.updated_at < $limit))
+                                       | select(.updated_at < $limit))
                                 | to_entries[]
                                 | [ .key, .value.id
                                     , (.value.name | match("^(.+)-(vcpkg[0-9a-f]+)$") | .captures[].string)
