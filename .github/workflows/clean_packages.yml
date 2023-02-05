@@ -82,7 +82,7 @@ jobs:
             echo "Checking package $package_key"
             echo "## Package $package_name ($package_triplet)" >> $GITHUB_STEP_SUMMARY
             load_paged "$GITHUB_API_URL/user/packages/nuget/$package_key/versions?state=active" versions.json
-            versions_delete=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '
+            versions_delete=$(jq -r -s --argjson days "$INPUT_OLDER_THAN_DAYS" '
                                 (now - $days * 24 * 60 * 60) as $limit
                                 | .[]
                                 | sort_by(.updated_at)
@@ -120,7 +120,7 @@ jobs:
             [[ $has_list != 1 ]] || echo >> $GITHUB_STEP_SUMMARY
 
             echo "### Retain versions of package $package_name" >> $GITHUB_STEP_SUMMARY
-            versions_retain=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '
+            versions_retain=$(jq -r -s --argjson days "$INPUT_OLDER_THAN_DAYS" '
                                 (now - $days * 24 * 60 * 60) as $limit
                                 | .[]
                                 | sort_by(.updated_at)
