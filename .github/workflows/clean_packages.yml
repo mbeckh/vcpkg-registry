@@ -52,7 +52,7 @@ jobs:
     - name: Delete Expired Versions
       shell: bash
       env:
-        INPUT_OLDER_THAN_DAYS: ${{inputs.older-than-days || (github.event_name == 'repository_dispatch' && github.event.client_payload.older-than-days) || 120}}
+        INPUT_OLDER_THAN_DAYS: ${{inputs.older-than-days || (github.event_name == 'repository_dispatch' && github.event.client_payload.older-than-days) || github.event_name == 'push' && 7 || 120}}
         INPUT_DELETE: ${{github.event_name != 'push' && (inputs.delete || (github.event_name == 'repository_dispatch' && github.event.client_payload.delete))}} # Push trigger is for test and therefore dry-run only
         GITHUB_TOKEN: ${{github.token}}
       run: |
