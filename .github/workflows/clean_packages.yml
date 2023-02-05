@@ -67,7 +67,7 @@ jobs:
                  "$next" >> "$2"
             next=$(egrep -i '^link: ' "$2.headers" | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
           done
-          [[ $RUNNER_DEBUG != 1 ]] || echo "::group::$1" && cat "$2" && echo "::endgroup::"
+          [[ $RUNNER_DEBUG != 1 ]] || (echo "::group::$1" && cat "$2" && echo "::endgroup::")
         }
 
         load_paged "$GITHUB_API_URL/user/packages?package_type=nuget" packages.json
@@ -143,6 +143,6 @@ jobs:
                 echo "| $package_name | $version_name | $version_hash | $version_updated |" >> $GITHUB_STEP_SUMMARY
               fi
             done <<< "$versions_retain"
-            [[ $has_list != 1 ]] || echo "None." >> $GITHUB_STEP_SUMMARY
+            [[ $has_list != 0 ]] || echo "None." >> $GITHUB_STEP_SUMMARY
             echo >> $GITHUB_STEP_SUMMARY
           done

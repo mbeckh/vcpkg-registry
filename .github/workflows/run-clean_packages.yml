@@ -70,7 +70,7 @@ jobs:
           next=$(egrep -i '^link: ' runs.json.headers | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
         done
 
-        [[ $RUNNER_DEBUG != 1 ]] || echo "::group::$url" && cat runs.json && echo "::endgroup::"
+        [[ $RUNNER_DEBUG != 1 ]] || (echo "::group::$url" && cat runs.json && echo "::endgroup::")
 
         run_created=$(jq -r -s '
           .[]
