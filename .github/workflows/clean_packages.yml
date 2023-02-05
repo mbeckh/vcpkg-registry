@@ -69,7 +69,8 @@ jobs:
         }
 
         load_paged "$GITHUB_API_URL/user/packages?package_type=nuget" packages.json
-        jq -r -s 'map( [ .name ]
+        jq -r -s '.[]
+                  | map( [ .name ]
                     + ( .name
                         | match("^(.+)_(.+?)$")
                         | [ .captures[].string ]
@@ -81,6 +82,7 @@ jobs:
             load_paged "$GITHUB_API_URL/user/packages/nuget/$package_key/versions?state=active" versions.json
             versions_delete=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '
                                 (now - $days * 24 * 60 * 60) as $limit
+                                | .[]
                                 | sort_by(.updated_at)
                                 | reverse
                                 | .[1:]
@@ -118,6 +120,7 @@ jobs:
             echo "### Retain versions of package $package_name" >> $GITHUB_STEP_SUMMARY
             versions_retain=$(jq -r --argjson days "$INPUT_OLDER_THAN_DAYS" '
                                 (now - $days * 24 * 60 * 60) as $limit
+                                | .[]
                                 | sort_by(.updated_at)
                                 | reverse
                                 | map(.updated_at |= fromdateiso8601)
