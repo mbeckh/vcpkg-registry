@@ -30,9 +30,9 @@ on:
         description: Do delete, default is output only (optional, default is false).
         type: boolean
         default: false
-    #secrets:
-    #  VCPKG_REGISTRY_TOKEN:
-    #    required: true
+    secrets:
+      VCPKG_REGISTRY_TOKEN:
+        required: true
 
 permissions: {}
 
@@ -43,7 +43,6 @@ jobs:
     concurrency:
       group: vcpkg-registry-clean_packages
     continue-on-error: true
-    permissions: write-all
 
     steps:
     - name: Trigger Workflow
@@ -51,7 +50,7 @@ jobs:
       env:
         INPUT_OLDER_THAN_DAYS: ${{toJSON(inputs.older-than-days)}}
         INPUT_DELETE: ${{toJSON(inputs.delete)}}
-        GITHUB_TOKEN: ${{github.token}}
+        GITHUB_TOKEN: ${{secrets.VCPKG_REGISTRY_TOKEN}}
       run: |
         url="$GITHUB_API_URL/repos/mbeckh/vcpkg-registry/actions/workflows/clean_packages.yml/runs?created=%3E%3D$(date -u -I -d "-1 week")&event=repository_dispatch&exclude_pull_requests=true"
 
