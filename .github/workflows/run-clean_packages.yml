@@ -71,7 +71,8 @@ jobs:
         fi
 
         run_created=$(jq -r -s '
-          .workflow_runs
+          .[]
+          | .workflow_runs
           | map(select(.status | IN("completed", "success", "in_progress", "queued", "requested", "waiting", "pending")))
           | sort_by(.run_number)
           | .[-1:]
