@@ -17,8 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-name: Clean Packages
-run-name: Clean Packages${{!inputs.delete && ' (Dry-Run)' || ''}}
+name: Dispatch Clean Packages
+run-name: Dispatch Clean Packages${{!inputs.delete && ' (Dry-Run)' || ''}}
 
 on:
   workflow_call:
