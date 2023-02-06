@@ -81,7 +81,7 @@ jobs:
                       ))
           | sort_by(.run_number)
           | .[-1]
-          | [ .run_number, (.created_at | fromdateiso8601 | gmtime | strftime("%Y-%m-%d %H:%M:%S")) ]
+          | [ .run_number, ((.created_at // empty) | fromdateiso8601 | gmtime | strftime("%Y-%m-%d %H:%M:%S")) ]
           | @tsv' runs.json)
 
         [[ $DELETE_JSON == true ]] && mode='workflow' || mode='dry-run'
