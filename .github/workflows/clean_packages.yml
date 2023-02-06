@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 name: Clean Packages
-run-name: '${{github.event_name == ''repository_dispatch'' && format(''Clean Packages{0} triggered by {2} #{3} in {1}'', !github.event.client_payload.delete && '' (Dry-Run)'' || '''', github.event.client_payload.origin.repository, github.event.client_payload.origin.workflow.name, github.event.client_payload.origin.workflow.run_number) || ''''}}'
+run-name: '${{github.event_name == ''repository_dispatch'' && format(''Clean Packages{0} triggered by {2} #{3} in {1}'', !github.event.client_payload.delete && '' (Dry-Run)'' || '''', github.event.client_payload.origin.repository, github.event.client_payload.origin.workflow.name, github.event.client_payload.origin.workflow.run_number) || github.event_name == ''workflow_dispatch'' && format(''Clean Packages{0}'', !inputs.delete && '' (Dry-Run)'' || '''') || ''''}}'
 
 on:
   push:
