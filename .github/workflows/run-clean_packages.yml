@@ -55,17 +55,18 @@ jobs:
         WORKFLOW_JSON: ${{toJSON(github.workflow)}}
         RUN_NUMBER_JSON: ${{toJSON(github.run_number)}}
         VCPKG_REGISTRY_TOKEN: ${{secrets.VCPKG_REGISTRY_TOKEN}}
+        GITHUB_TOKEN: ${{github.token}}
       run: |
         url="$GITHUB_API_URL/repos/mbeckh/vcpkg-registry/actions/workflows/clean_packages.yml/runs?created=%3E%3D$(date -u -I -d "-1 week")&event=repository_dispatch&exclude_pull_requests=true"
 
         curl -D runs.json.headers --no-progress-meter \
-             -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $VCPKG_REGISTRY_TOKEN" \
+             -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
              "$url" > runs.json
         next=$(egrep -i '^link: ' runs.json.headers | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
 
         while [[ -n $next ]]; do
           curl -D "runs.json.headers" --no-progress-meter \
-               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $VCPKG_REGISTRY_TOKEN" \
+               -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" \
                "$next" >> runs.json
           next=$(egrep -i '^link: ' runs.json.headers | grep -P -i -o '(?<=<)([\S]*)(?=>; rel="next")') || [[ $? == 1 ]]
         done
@@ -75,18 +76,20 @@ jobs:
         run_created=$(jq -r -s '
           .[]
           | .workflow_runs
-          | map(select(.status | IN("completed", "success", "in_progress", "queued", "requested", "waiting", "pending")))
+          | map(select( (.status | IN("completed", "success", "in_progress", "queued", "requested", "waiting", "pending"))
+                        and (.display_title | contains(" (Dry-Run) ") | not)
+                      ))
           | sort_by(.run_number)
-          | .[-1:]
-          | [ .run_number, .created_at]?
-          | @sh' runs.json)
+          | .[-1]
+          | [ .run_number, (.created_at | fromdateiso8601 | gmtime | strftime("%Y-%m-%d %H:%M:%S")) ]
+          | @tsv' runs.json)
 
         [[ $DELETE_JSON == true ]] && mode='workflow' || mode='dry-run'
         if [[ -n $run_created ]]; then
-          echo "Skipping $mode \"Clean Packages\" in repository mbeckh/vcpkg-registry, last run ${run_created%% *} created at ${run_created#* }."
+
+          echo "Skipping $mode \"Clean Packages\" in repository mbeckh/vcpkg-registry, last run ${run_created%%$'\t'*} created at ${run_created#*$'\t'}."
         else
           echo "Trigger $mode \"Clean Packages\" in repository mbeckh/vcpkg-registry, last successful run was more than 1 week ago."
-          # Try different repository to check rights
           curl -X POST --no-progress-meter \
                -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $VCPKG_REGISTRY_TOKEN" \
                "$GITHUB_API_URL/repos/mbeckh/vcpkg-registry/dispatches" \
