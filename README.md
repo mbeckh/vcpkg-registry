@@ -2,7 +2,8 @@
 A vcpkg registry for customized ports and own libraries.
 
 ![Last Update](https://img.shields.io/github/last-commit/mbeckh/vcpkg-registry/master?label=Last+Update&style=flat-square)
-[![Ports](https://img.shields.io/github/actions/workflow/status/mbeckh/vcpkg-registry/build.yml?branch=master&label=Ports&logo=GitHub&style=flat-square)](https://github.com/mbeckh/vcpkg-repository/actions)
+[![Ports](https://img.shields.io/github/actions/workflow/status/mbeckh/vcpkg-registry/build.yml?branch=master&label=Ports&logo=GitHub&style=flat-square)](https://github.com/mbeckh/vcpkg-registry/actions)
+[![Port Count](https://img.shields.io/github/directory-file-count/mbeckh/vcpkg-registry/ports?label=Port%20Count&type=dir&style=flat-square)](https://github.com/mbeckh/vcpkg-registry/tree/master/ports)
 [![License](https://img.shields.io/github/license/mbeckh/vcpkg-registry?label=License&style=flat-square)](https://github.com/mbeckh/vcpkg-registry/blob/master/LICENSE)
 
 ## Documentation
